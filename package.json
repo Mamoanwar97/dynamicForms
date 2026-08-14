@@ -13,12 +13,13 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "11.6.2"
+      "version": ">=11.6.2",
+      "onFail": "ignore"
     }
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@11.6.2"
+  "packageManager": "npm@11.16.0"
 }
