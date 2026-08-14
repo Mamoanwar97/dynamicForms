@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+.turbo
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs / OS / IDE
+*.log
+.DS_Store
+.vscode
+.idea
+
+# Vite
+apps/web/dist
