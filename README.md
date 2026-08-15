@@ -22,27 +22,105 @@ packages/
   form-tools/   # JSON Schema / RJSF helpers (base + textbox fields)
 ```
 
-## Getting started
+## Local setup
+
+### Prerequisites
+
+- **Node.js** with **npm ≥ 11.6** (see root `package.json` `packageManager`)
+- **MongoDB** running locally (or a remote URI you can reach)
+
+### 1. Install dependencies
+
+From the repo root:
 
 ```bash
 npm install
-npm run dev      # starts web + api (and package watch builds via turbo)
 ```
 
-Other root scripts: `npm run build`, `npm run lint`, `npm run check-types`.
+### 2. Configure environment
 
-### Environment
+**Web** — create `apps/web/.env`:
 
-**API** (`apps/api`):
+```bash
+VITE_API_URL=http://localhost:3000
+```
+
+`VITE_API_URL` is the API origin (no trailing slash). The client calls `${VITE_API_URL}/trpc`.
+
+**API** — optional. Defaults work for a local MongoDB with no auth. To override, export env vars when starting the API (or use your process manager):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3000` | HTTP listen port |
 | `MONGODB_URI` | `mongodb://127.0.0.1:27017` | Mongo connection string |
 | `MONGODB_DB` | `dynamicForms` | Database name |
-| `CORS_ORIGIN` | (all) | Comma-separated allowed origins |
+| `CORS_ORIGIN` | allow all | Comma-separated allowed origins (e.g. `http://localhost:5173`) |
 
-**Web** (`apps/web`): set the tRPC API base URL via the app’s env (see `apps/web/.env`).
+Example:
+
+```bash
+export MONGODB_URI="mongodb://127.0.0.1:27017"
+export MONGODB_DB="dynamicForms"
+export CORS_ORIGIN="http://localhost:5173"
+export PORT=3000
+```
+
+### 3. Start MongoDB
+
+Ensure MongoDB is listening on the URI above (default `127.0.0.1:27017`). The API connects on boot and will exit if it cannot reach the database.
+
+### 4. Run the app
+
+From the repo root:
+
+```bash
+npm run dev
+```
+
+Turborepo starts workspace `dev` tasks (API with `tsx watch`, web with Vite, and package `tsc --watch` builds).
+
+| App | URL |
+|-----|-----|
+| Web | http://localhost:5173 (Vite default) |
+| API | http://localhost:3000 |
+| tRPC | http://localhost:3000/trpc |
+| Health | http://localhost:3000/health |
+
+Open the web URL in a browser. Create a form on `/create`; it should persist via the API and appear on `/`.
+
+### 5. Run apps individually (optional)
+
+```bash
+# terminal 1 — shared packages (if not using root turbo dev)
+npm run dev -w @repo/server
+npm run dev -w @repo/form-tools
+
+# terminal 2 — API
+npm run dev -w @repo/api
+
+# terminal 3 — web
+npm run dev -w @repo/web
+```
+
+### Other scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Build all packages and apps |
+| `npm run lint` | Lint workspaces |
+| `npm run check-types` | Typecheck all workspaces |
+| `npm run dev -w @repo/api` | API only |
+| `npm run dev -w @repo/web` | Web only |
+
+### Production-style run
+
+```bash
+npm run build
+npm run start -w @repo/api   # serves apps/api/dist
+npm run preview -w @repo/web # Vite preview of apps/web/dist
+```
+
+Ensure `VITE_API_URL` pointed at the real API **before** `npm run build` for the web app (Vite inlines it at build time).
 
 ---
 
