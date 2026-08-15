@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { trpcClient } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,16 @@ function FormsList() {
             >
               <Link to="/edit/$id" params={{ id: form.id }}>
                 <Pencil />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label={`Preview ${form.title}`}
+            >
+              <Link to="/preview/$id" params={{ id: form.id }}>
+                <Eye />
               </Link>
             </Button>
             <Button

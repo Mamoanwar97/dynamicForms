@@ -52,7 +52,7 @@ function RightPane(props: { data: CreateFormData | undefined }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-(--card-spacing)">
-          <ViewForm data={props.data} />
+          <ViewForm data={props.data} isReadonly />
         </CardContent>
         <CardFooter className="justify-between text-xs text-muted-foreground">
           <span>Powered by RJSF + shadcn</span>

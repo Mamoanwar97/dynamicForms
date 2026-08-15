@@ -9,6 +9,7 @@ import type { UiSchema } from "@rjsf/utils";
 
 type ViewFormProps = {
   data: CreateFormData | undefined;
+  isReadonly: boolean;
 };
 
 function getSchemaFromData(data: CreateFormData) {
@@ -37,5 +38,7 @@ export const ViewForm = (props: ViewFormProps) => {
     );
   }
 
-  return <Form {...getSchemaFromData(props.data)} readonly />;
+  return (
+    <Form {...getSchemaFromData(props.data)} readonly={props.isReadonly} />
+  );
 };
