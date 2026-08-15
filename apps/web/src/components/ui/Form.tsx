@@ -1,6 +1,6 @@
 import Form from "@rjsf/shadcn";
 import { type RJSFSchema } from "@rjsf/utils";
-import { buildSchema, buildTextBoxSchema } from "@repo/form-tools";
+import { buildSchema } from "@repo/form-tools";
 
 const schema: RJSFSchema = {
   type: "object",

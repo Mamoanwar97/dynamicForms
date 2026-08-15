@@ -30,8 +30,12 @@ function getSchemaFromData(data: CreateFormData) {
 
 export const ViewForm = (props: ViewFormProps) => {
   if (props.data === undefined) {
-    return <div>No data available</div>;
+    return (
+      <div className="text-sm text-muted-foreground">
+        No form to preview yet. Create or edit a form on the left.
+      </div>
+    );
   }
 
-  return <Form {...getSchemaFromData(props.data)} />;
+  return <Form {...getSchemaFromData(props.data)} readonly />;
 };
