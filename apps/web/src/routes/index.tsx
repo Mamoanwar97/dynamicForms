@@ -1,12 +1,63 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Pencil, Plus } from "lucide-react";
+import { ArrowRight, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
 });
+
+function FormsList() {
+  const utils = trpc.useUtils();
+  const forms = trpc.form.list.useQuery();
+
+  const remove = trpc.form.delete.useMutation({
+    onSuccess: () => {
+      void utils.form.list.invalidate();
+    },
+  });
+
+  if (forms.isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading forms…</p>;
+  }
+
+  if (!forms.data || forms.data.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No forms saved yet. Create one to get started.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="flex w-full max-w-md flex-col gap-2">
+      {forms.data.map((form) => (
+        <li
+          key={form.id}
+          className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3"
+        >
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{form.title}</p>
+            <p className="text-xs text-muted-foreground">
+              {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Delete ${form.title}`}
+            disabled={remove.isPending}
+            onClick={() => remove.mutate({ id: form.id })}
+          >
+            <Trash2 />
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function LandingPage() {
   return (
@@ -37,6 +88,8 @@ function LandingPage() {
           </Link>
         </Button>
       </div>
+
+      <FormsList />
     </main>
   );
 }

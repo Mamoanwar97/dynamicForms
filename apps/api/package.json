@@ -16,7 +16,9 @@
   "type": "module",
   "dependencies": {
     "@repo/form-tools": "*",
+    "@repo/server": "*",
     "@fastify/cors": "^11.3.0",
+    "@trpc/server": "^11.18.0",
     "fastify": "^5.12.0",
     "mongodb": "^7.5.0"
   },
