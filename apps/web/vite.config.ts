@@ -14,11 +14,14 @@ export default defineConfig(({ mode }) => {
       host,
       port,
       strictPort: true,
+      // Allow Railway (and other) reverse-proxy hostnames
+      allowedHosts: true,
     },
     preview: {
       host,
       port,
       strictPort: true,
+      allowedHosts: true,
     },
   }
 })
