@@ -1,11 +1,37 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 
+const API_URL = import.meta.env.VITE_API_URL ?? ''
+
 function App() {
   const [count, setCount] = useState(0)
+  const [apiStatus, setApiStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [apiMessage, setApiMessage] = useState('')
+
+  useEffect(() => {
+    if (!API_URL) {
+      setApiStatus('error')
+      setApiMessage('VITE_API_URL is not set')
+      return
+    }
+
+    fetch(`${API_URL}/`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json() as Promise<{ hello?: string }>
+      })
+      .then((data) => {
+        setApiStatus('ok')
+        setApiMessage(data.hello ?? JSON.stringify(data))
+      })
+      .catch((err: unknown) => {
+        setApiStatus('error')
+        setApiMessage(err instanceof Error ? err.message : 'Request failed')
+      })
+  }, [])
 
   return (
     <>
@@ -19,6 +45,12 @@ function App() {
           <h1>Get started</h1>
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+          </p>
+          <p>
+            API:{' '}
+            {apiStatus === 'loading' && 'checking…'}
+            {apiStatus === 'ok' && <span style={{ color: 'green' }}>ok — {apiMessage}</span>}
+            {apiStatus === 'error' && <span style={{ color: 'crimson' }}>error — {apiMessage}</span>}
           </p>
         </div>
         <button

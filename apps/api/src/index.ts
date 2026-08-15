@@ -1,9 +1,18 @@
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 
 const app = Fastify({ logger: true })
 
+await app.register(cors, {
+  origin: process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) ?? true,
+})
+
 app.get('/', async () => {
   return { hello: 'world' }
+})
+
+app.get('/health', async () => {
+  return { ok: true }
 })
 
 const start = async () => {
