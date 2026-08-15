@@ -18,7 +18,8 @@
     "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"],
-      "@repo/form-tools": ["../../packages/form-tools/src"]
+      "@repo/form-tools": ["../../packages/form-tools/src"],
+      "@repo/server": ["../../packages/server/src"]
     },
 
     /* Linting */

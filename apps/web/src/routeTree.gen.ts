@@ -10,63 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as FormBuilderRouteImport } from './routes/_form-builder'
-import { Route as FormBuilderCreateRouteImport } from './routes/_form-builder/create'
-import { Route as FormBuilderEditRouteImport } from './routes/_form-builder/edit'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as EditIdRouteImport } from './routes/edit.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FormBuilderRoute = FormBuilderRouteImport.update({
-  id: '/_form-builder',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FormBuilderCreateRoute = FormBuilderCreateRouteImport.update({
+const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => FormBuilderRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const FormBuilderEditRoute = FormBuilderEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => FormBuilderRoute,
+const EditIdRoute = EditIdRouteImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/create': typeof FormBuilderCreateRoute
-  '/edit': typeof FormBuilderEditRoute
+  '/create': typeof CreateRoute
+  '/edit/$id': typeof EditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/create': typeof FormBuilderCreateRoute
-  '/edit': typeof FormBuilderEditRoute
+  '/create': typeof CreateRoute
+  '/edit/$id': typeof EditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_form-builder': typeof FormBuilderRouteWithChildren
-  '/_form-builder/create': typeof FormBuilderCreateRoute
-  '/_form-builder/edit': typeof FormBuilderEditRoute
+  '/create': typeof CreateRoute
+  '/edit/$id': typeof EditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/edit'
+  fullPaths: '/' | '/create' | '/edit/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/edit'
-  id:
-    | '__root__'
-    | '/'
-    | '/_form-builder'
-    | '/_form-builder/create'
-    | '/_form-builder/edit'
+  to: '/' | '/create' | '/edit/$id'
+  id: '__root__' | '/' | '/create' | '/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  FormBuilderRoute: typeof FormBuilderRouteWithChildren
+  CreateRoute: typeof CreateRoute
+  EditIdRoute: typeof EditIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,47 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_form-builder': {
-      id: '/_form-builder'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof FormBuilderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_form-builder/create': {
-      id: '/_form-builder/create'
+    '/create': {
+      id: '/create'
       path: '/create'
       fullPath: '/create'
-      preLoaderRoute: typeof FormBuilderCreateRouteImport
-      parentRoute: typeof FormBuilderRoute
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_form-builder/edit': {
-      id: '/_form-builder/edit'
-      path: '/edit'
-      fullPath: '/edit'
-      preLoaderRoute: typeof FormBuilderEditRouteImport
-      parentRoute: typeof FormBuilderRoute
+    '/edit/$id': {
+      id: '/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/edit/$id'
+      preLoaderRoute: typeof EditIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface FormBuilderRouteChildren {
-  FormBuilderCreateRoute: typeof FormBuilderCreateRoute
-  FormBuilderEditRoute: typeof FormBuilderEditRoute
-}
-
-const FormBuilderRouteChildren: FormBuilderRouteChildren = {
-  FormBuilderCreateRoute: FormBuilderCreateRoute,
-  FormBuilderEditRoute: FormBuilderEditRoute,
-}
-
-const FormBuilderRouteWithChildren = FormBuilderRoute._addFileChildren(
-  FormBuilderRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  FormBuilderRoute: FormBuilderRouteWithChildren,
+  CreateRoute: CreateRoute,
+  EditIdRoute: EditIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

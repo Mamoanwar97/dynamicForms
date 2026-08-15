@@ -2,8 +2,8 @@ import { ObjectId, type Document, type WithId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { publicProcedure, router } from "./trpc.js";
-import { formDataSchema, formIdSchema, formSchema, type Form } from "./schemas.js";
+import { publicProcedure, router } from "./trpc.ts";
+import { formDataSchema, formIdSchema, formSchema, type Form } from "./schemas.ts";
 
 const COLLECTION = "forms";
 

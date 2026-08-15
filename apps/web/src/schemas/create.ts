@@ -1,4 +1,4 @@
-import { type RJSFSchema } from "@rjsf/utils";
+import { type RJSFSchema, type UiSchema } from "@rjsf/utils";
 import { buildBaseSchema } from "@repo/form-tools";
 
 export const createFormSchema: RJSFSchema = buildBaseSchema("Create Form", {
@@ -34,6 +34,12 @@ export const createFormSchema: RJSFSchema = buildBaseSchema("Create Form", {
     },
   },
 });
+
+export const createFormUiSchema: UiSchema = {
+  "ui:submitButtonOptions": {
+    submitText: "Save and Exit",
+  },
+};
 
 export type CreateFormData = {
   title: string;

@@ -1,8 +1,6 @@
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { Eye, Pencil, Plus } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,47 +9,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FormBuilderProvider, useFormBuilder } from "@/contexts/form-builder";
-import { cn } from "@/lib/utils";
 import { ViewForm } from "@/pages/view-form";
+import { CommonForm } from "@/pages/common-form";
+import { useState, type ComponentProps } from "react";
+import type { CreateFormData } from "@/schemas/create";
 
-export const Route = createFileRoute("/_form-builder")({
-  component: FormBuilderLayout,
-});
+type LeftPaneProps = {
+  Component: React.ComponentType<ComponentProps<typeof CommonForm>>;
+  props: ComponentProps<typeof CommonForm>;
+};
 
-const modes = [
-  { to: "/create", label: "Create", icon: Plus },
-  { to: "/edit", label: "Edit", icon: Pencil },
-] as const;
-
-function ModeToggle() {
-  const matchRoute = useMatchRoute();
-
-  return (
-    <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-1">
-      {modes.map(({ to, label, icon: Icon }) => {
-        const active = matchRoute({ to });
-
-        return (
-          <Button
-            key={to}
-            asChild
-            variant={active ? "secondary" : "ghost"}
-            size="sm"
-            className={cn(!active && "text-muted-foreground")}
-          >
-            <Link to={to}>
-              <Icon data-icon="inline-start" />
-              {label}
-            </Link>
-          </Button>
-        );
-      })}
-    </div>
-  );
-}
-
-function LeftPane() {
+function LeftPane({ Component, props }: LeftPaneProps) {
   return (
     <section className="relative flex flex-col gap-8 border-b border-border bg-muted/40 p-8 lg:border-r lg:border-b-0 lg:p-12 xl:p-16">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -61,18 +29,13 @@ function LeftPane() {
             Design the form, then preview it on the right.
           </p>
         </div>
-
-        <ModeToggle />
       </div>
-
-      <Outlet />
+      <Component {...props} />
     </section>
   );
 }
 
-function RightPane() {
-  const { formData } = useFormBuilder();
-
+function RightPane(props: { data: CreateFormData | undefined }) {
   return (
     <section className="flex flex-col justify-center bg-background p-6 sm:p-10 lg:p-12">
       <Card className="mx-auto w-full max-w-md shadow-sm">
@@ -89,7 +52,7 @@ function RightPane() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-(--card-spacing)">
-          <ViewForm data={formData} />
+          <ViewForm data={props.data} />
         </CardContent>
         <CardFooter className="justify-between text-xs text-muted-foreground">
           <span>Powered by RJSF + shadcn</span>
@@ -100,13 +63,40 @@ function RightPane() {
   );
 }
 
-function FormBuilderLayout() {
+type FormLiveViewerProps = {
+  Component: React.ComponentType<ComponentProps<typeof CommonForm>>;
+  defaultData?: CreateFormData;
+  onSave: (data: CreateFormData) => void;
+};
+
+export function FormLiveViewer({
+  Component,
+  defaultData,
+  onSave,
+}: FormLiveViewerProps) {
+  const [formData, setFormData] = useState<CreateFormData | undefined>(
+    defaultData,
+  );
+
+  const handleView = (data: CreateFormData) => {
+    setFormData(data);
+  };
+
+  const handleSave = (data: CreateFormData) => {
+    onSave(data);
+  };
+
   return (
-    <FormBuilderProvider>
-      <div className="grid min-h-svh lg:grid-cols-2">
-        <LeftPane />
-        <RightPane />
-      </div>
-    </FormBuilderProvider>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <LeftPane
+        Component={Component}
+        props={{
+          formData,
+          onView: handleView,
+          onSave: handleSave,
+        }}
+      />
+      <RightPane data={formData} />
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-export { appRouter, formRouter, type AppRouter } from "./router.js";
-export type { Context } from "./context.js";
-export type { FormData, Form } from "./schemas.js";
-export { formSchema, formDataSchema, formInputSchema, formIdSchema } from "./schemas.js";
+export { appRouter, formRouter, type AppRouter } from "./router.ts";
+export type { Context } from "./context.ts";
+export type { FormData, Form } from "./schemas.ts";
+export { formSchema, formDataSchema, formInputSchema, formIdSchema } from "./schemas.ts";

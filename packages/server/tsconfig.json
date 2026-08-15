@@ -15,7 +15,9 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": ["src"]
 }

@@ -1,29 +1,30 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowRight, Pencil, Plus, Trash2 } from "lucide-react";
 
+import { trpcClient } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/")({
+  loader: () => trpcClient.form.list.query(),
+  pendingComponent: () => (
+    <p className="text-sm text-muted-foreground">Loading forms…</p>
+  ),
   component: LandingPage,
 });
 
 function FormsList() {
-  const utils = trpc.useUtils();
-  const forms = trpc.form.list.useQuery();
+  const forms = Route.useLoaderData();
+  const router = useRouter();
 
   const remove = trpc.form.delete.useMutation({
     onSuccess: () => {
-      void utils.form.list.invalidate();
+      void router.invalidate();
     },
   });
 
-  if (forms.isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading forms…</p>;
-  }
-
-  if (!forms.data || forms.data.length === 0) {
+  if (forms.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No forms saved yet. Create one to get started.
@@ -33,7 +34,7 @@ function FormsList() {
 
   return (
     <ul className="flex w-full max-w-md flex-col gap-2">
-      {forms.data.map((form) => (
+      {forms.map((form) => (
         <li
           key={form.id}
           className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3"
@@ -44,15 +45,27 @@ function FormsList() {
               {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`Delete ${form.title}`}
-            disabled={remove.isPending}
-            onClick={() => remove.mutate({ id: form.id })}
-          >
-            <Trash2 />
-          </Button>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label={`Edit ${form.title}`}
+            >
+              <Link to="/edit/$id" params={{ id: form.id }}>
+                <Pencil />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Delete ${form.title}`}
+              disabled={remove.isPending}
+              onClick={() => remove.mutate({ id: form.id })}
+            >
+              <Trash2 />
+            </Button>
+          </div>
         </li>
       ))}
     </ul>
@@ -79,12 +92,6 @@ function LandingPage() {
             <Plus data-icon="inline-start" />
             Create form
             <ArrowRight data-icon="inline-end" />
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <Link to="/edit">
-            <Pencil data-icon="inline-start" />
-            Edit form
           </Link>
         </Button>
       </div>
