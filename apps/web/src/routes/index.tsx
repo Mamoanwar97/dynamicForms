@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowRight, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Eye, Globe, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { trpcClient } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
@@ -40,12 +40,29 @@ function FormsList() {
           className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3"
         >
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{form.title}</p>
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-medium">{form.title}</p>
+              {form.publishedFormId && (
+                <Badge variant="secondary">Published</Badge>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            {form.publishedFormId && (
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                aria-label={`View published ${form.title}`}
+              >
+                <Link to="/forms/$id" params={{ id: form.publishedFormId }}>
+                  <Globe />
+                </Link>
+              </Button>
+            )}
             <Button
               asChild
               variant="ghost"
