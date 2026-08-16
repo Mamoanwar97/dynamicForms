@@ -2,9 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { FormLiveViewer } from "@/pages/form-life-viewer";
 import { CommonForm } from "@/pages/common-form";
+import { requireAuth } from "@/lib/auth";
 import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/create")({
+  beforeLoad: requireAuth,
   component: CreateRoute,
 });
 

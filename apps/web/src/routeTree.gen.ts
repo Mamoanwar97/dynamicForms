@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as EditIdRouteImport } from './routes/edit.$id'
 import { Route as FormsIdRouteImport } from './routes/forms.$id'
 import { Route as PreviewIdRouteImport } from './routes/preview.$id'
@@ -23,6 +25,16 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditIdRoute = EditIdRouteImport.update({
@@ -44,6 +56,8 @@ const PreviewIdRoute = PreviewIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/edit/$id': typeof EditIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/preview/$id': typeof PreviewIdRoute
@@ -51,6 +65,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/edit/$id': typeof EditIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/preview/$id': typeof PreviewIdRoute
@@ -59,21 +75,47 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/edit/$id': typeof EditIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/preview/$id': typeof PreviewIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/edit/$id' | '/forms/$id' | '/preview/$id'
+  fullPaths:
+    | '/'
+    | '/create'
+    | '/login'
+    | '/register'
+    | '/edit/$id'
+    | '/forms/$id'
+    | '/preview/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/edit/$id' | '/forms/$id' | '/preview/$id'
-  id: '__root__' | '/' | '/create' | '/edit/$id' | '/forms/$id' | '/preview/$id'
+  to:
+    | '/'
+    | '/create'
+    | '/login'
+    | '/register'
+    | '/edit/$id'
+    | '/forms/$id'
+    | '/preview/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/create'
+    | '/login'
+    | '/register'
+    | '/edit/$id'
+    | '/forms/$id'
+    | '/preview/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
   EditIdRoute: typeof EditIdRoute
   FormsIdRoute: typeof FormsIdRoute
   PreviewIdRoute: typeof PreviewIdRoute
@@ -93,6 +135,20 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/edit/$id': {
@@ -122,6 +178,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
   EditIdRoute: EditIdRoute,
   FormsIdRoute: FormsIdRoute,
   PreviewIdRoute: PreviewIdRoute,

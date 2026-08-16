@@ -4,9 +4,11 @@ import { ArrowRight, Eye, Globe, Pencil, Plus, Trash2 } from "lucide-react";
 import { trpcClient } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { requireAuth } from "@/lib/auth";
 import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: requireAuth,
   loader: () => trpcClient.form.list.query(),
   pendingComponent: () => (
     <p className="text-sm text-muted-foreground">Loading forms…</p>

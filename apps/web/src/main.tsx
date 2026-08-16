@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { TRPCProvider } from "./providers/trpc";
+import { AuthProvider } from "./providers/auth";
 import "./index.css";
 
 const router = createRouter({ routeTree });
@@ -16,7 +17,9 @@ declare module "@tanstack/react-router" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <TRPCProvider>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </TRPCProvider>
   </StrictMode>,
 );

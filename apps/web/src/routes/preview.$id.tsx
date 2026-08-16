@@ -3,10 +3,12 @@ import { Globe, Rocket } from "lucide-react";
 
 import { trpcClient } from "@/api/client";
 import { Button } from "@/components/ui/button";
+import { requireAuth } from "@/lib/auth";
 import { ViewForm } from "@/pages/view-form";
 import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/preview/$id")({
+  beforeLoad: requireAuth,
   loader: ({ params }) => trpcClient.form.byId.query({ id: params.id }),
   pendingComponent: () => (
     <p className="text-sm text-muted-foreground">Loading form…</p>

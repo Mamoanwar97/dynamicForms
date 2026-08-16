@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 
 import { API_URL } from "@/api/constants";
+import { authHeaders } from "@/lib/auth";
 import { trpc } from "@/trpc";
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
@@ -12,6 +13,7 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
       links: [
         httpBatchLink({
           url: `${API_URL}/trpc`,
+          headers: authHeaders,
         }),
       ],
     }),

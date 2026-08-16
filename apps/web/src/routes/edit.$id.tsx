@@ -3,8 +3,10 @@ import { trpc } from "@/trpc";
 import { trpcClient } from "@/api/client";
 import { CommonForm } from "@/pages/common-form";
 import { FormLiveViewer } from "@/pages/form-life-viewer";
+import { requireAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/edit/$id")({
+  beforeLoad: requireAuth,
   loader: ({ params }) => trpcClient.form.byId.query({ id: params.id }),
   pendingComponent: () => (
     <p className="text-sm text-muted-foreground">Loading form…</p>

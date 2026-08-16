@@ -55,6 +55,7 @@ VITE_API_URL=http://localhost:3000
 | `MONGODB_URI` | `mongodb://127.0.0.1:27017` | Mongo connection string |
 | `MONGODB_DB` | `dynamicForms` | Database name |
 | `CORS_ORIGIN` | allow all | Comma-separated allowed origins (e.g. `http://localhost:5173`) |
+| `JWT_SECRET` | dev fallback | Secret used to sign auth tokens. **Set a strong value in production** |
 
 Example:
 
@@ -130,10 +131,15 @@ Ensure `VITE_API_URL` pointed at the real API **before** `npm run build` for the
 
 | Path | Purpose |
 |------|---------|
-| `/` | Landing: list saved forms; create / edit / preview / delete |
-| `/create` | Split-pane builder with live preview; save creates a form |
-| `/edit/$id` | Same builder prefilled from API; save updates the form |
-| `/preview/$id` | Read-only rendered form for a saved definition |
+| `/login` | Log in to an existing account |
+| `/register` | Create a new account |
+| `/` | Landing: list your forms; create / edit / preview / delete (requires login) |
+| `/create` | Split-pane builder with live preview; save creates a form (requires login) |
+| `/edit/$id` | Same builder prefilled from API; save updates the form (owner only) |
+| `/preview/$id` | Read-only rendered form for a saved definition (owner only) |
+| `/forms/$id` | Public page for an active published form (no login required) |
+
+Form management (list/create/edit/delete/publish) requires being logged in and owning the form. The only public data is `publishedForm.byId` for active published forms.
 
 ### Form builder UX
 
@@ -169,25 +175,53 @@ Ensure `VITE_API_URL` pointed at the real API **before** `npm run build` for the
 
 ### tRPC API (`packages/server`)
 
-Namespace: `form.*`
+Namespaces: `auth.*`, `form.*`, `publishedForm.*`
+
+#### Authentication (`auth.*`)
 
 | Procedure | Type | Description |
 |-----------|------|-------------|
-| `form.list` | query | All forms, newest `createdAt` first |
-| `form.byId` | query | Single form by id (`NOT_FOUND` / invalid id → `BAD_REQUEST`) |
-| `form.create` | mutation | Insert form; sets `createdAt` / `updatedAt` |
-| `form.update` | mutation | Replace title + inputs; bumps `updatedAt` |
-| `form.delete` | mutation | Delete by id; returns `{ id }` |
+| `auth.register` | mutation | Create an account; returns `{ user, token }` (JWT) |
+| `auth.login` | mutation | Verify credentials; returns `{ user, token }` |
+| `auth.me` | query | Current authenticated user (requires token) |
+
+Auth uses **Bearer JWTs**. Clients send `Authorization: Bearer <token>`; the API resolves the token to a user in the request context. Private procedures throw `UNAUTHORIZED` otherwise.
+
+#### Forms (`form.*`) — private
+
+All `form.*` procedures require authentication and are scoped to the **owner** (`createdBy`), so a user only sees/manages their own forms.
+
+| Procedure | Type | Access |
+|-----------|------|--------|
+| `form.list` | query | Owner only |
+| `form.byId` | query | Owner only |
+| `form.create` | mutation | Owner (sets `createdBy`) |
+| `form.update` | mutation | Owner only |
+| `form.delete` | mutation | Owner only |
+
+#### Published forms (`publishedForm.*`) — getById public
+
+`publishedForm.byId` is **public** (anyone, including unauthenticated visitors, can read an active published form). All other operations are private and owner-only.
+
+| Procedure | Type | Access |
+|-----------|------|--------|
+| `publishedForm.byId` | query | **Public** (active forms only) |
+| `publishedForm.list` | query | Owner only |
+| `publishedForm.create` | mutation | Owner of the source form |
+| `publishedForm.update` | mutation | Owner only |
+| `publishedForm.delete` | mutation | Owner only |
 
 ### Data model & validation
 
 Zod schemas (shared with the client via the package):
 
+- **User**: `username`, hashed `passwordHash` (bcrypt); serialized as `{ id, username }`
 - **Form input field**: `title` (required), `description?`, `isRequired?`
 - **Form payload**: `title` + `inputs` (min 1 field)
-- **Persisted form**: payload + `id`, `createdAt`, `updatedAt` (ISO strings on the wire)
+- **Persisted form**: payload + `id`, `createdBy`, `createdAt`, `updatedAt` (ISO strings on the wire)
+- **Published form**: `formId`, `data?`, `isActive?`; persisted as `id`, `createdBy`, `createdAt`, `updatedAt`
 
-MongoDB collection: `forms`. Documents store `ObjectId` `_id` and `Date` timestamps; the router serializes to string `id` and ISO date strings.
+MongoDB collections: `users`, `forms`, `publishedForms`. Documents store `ObjectId` `_id` and `Date` timestamps; the router serializes to string `id` and ISO date strings.
 
 ### Persistence (`apps/api`)
 
