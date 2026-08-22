@@ -28,31 +28,42 @@ function FormsList() {
 
   if (forms.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No forms saved yet. Create one to get started.
-      </p>
+      <div className="flex flex-col items-center justify-center gap-2 rounded-[1rem] border bg-card px-6 py-16 text-center">
+        <h2 className="font-heading text-lg font-semibold">
+          No forms saved yet
+        </h2>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Create your first schema-driven form and it will show up here.
+        </p>
+        <Button asChild className="mt-4">
+          <Link to="/create">
+            <Plus data-icon="inline-start" />
+            Create form
+          </Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <ul className="flex w-full max-w-md flex-col gap-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {forms.map((form) => (
-        <li
+        <div
           key={form.id}
-          className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3"
+          className="flex flex-col gap-4 rounded-[1rem] border bg-card p-5"
         >
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
               <p className="truncate text-sm font-medium">{form.title}</p>
-              {form.publishedFormId && (
-                <Badge variant="secondary">Published</Badge>
-              )}
+              <p className="text-xs text-muted-foreground">
+                {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
-            </p>
+            {form.publishedFormId && (
+              <Badge variant="secondary">Published</Badge>
+            )}
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="mt-auto flex items-center gap-1 border-t pt-3">
             {form.publishedFormId && (
               <Button
                 asChild
@@ -95,37 +106,39 @@ function FormsList() {
               <Trash2 />
             </Button>
           </div>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
 function LandingPage() {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-10 bg-muted/40 p-8">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <Badge variant="outline">Dynamic forms</Badge>
-        <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-          Build forms, your way
-        </h1>
-        <p className="max-w-md text-muted-foreground">
-          Design schema-driven forms with a live preview. Start fresh or edit
-          an existing form.
-        </p>
-      </div>
+    <main className="min-h-svh bg-background">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-8 sm:px-8">
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-2">
+            <Badge variant="outline" className="w-fit">
+              Dynamic forms
+            </Badge>
+            <h1 className="font-heading text-3xl font-semibold tracking-tight">
+              Your forms
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Design schema-driven forms with a live preview.
+            </p>
+          </div>
+          <Button asChild size="lg">
+            <Link to="/create">
+              <Plus data-icon="inline-start" />
+              Create form
+              <ArrowRight data-icon="inline-end" />
+            </Link>
+          </Button>
+        </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button asChild size="lg">
-          <Link to="/create">
-            <Plus data-icon="inline-start" />
-            Create form
-            <ArrowRight data-icon="inline-end" />
-          </Link>
-        </Button>
+        <FormsList />
       </div>
-
-      <FormsList />
     </main>
   );
 }

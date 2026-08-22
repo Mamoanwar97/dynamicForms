@@ -38,6 +38,9 @@ export const createFormSchema: RJSFSchema = buildBaseSchema("Create Form", {
 export const createFormUiSchema: UiSchema = {
   "ui:submitButtonOptions": {
     submitText: "Save and Exit",
+    props: {
+      className: "w-full",
+    },
   },
 };
 
