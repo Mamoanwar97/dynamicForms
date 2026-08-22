@@ -4,6 +4,7 @@ export { formRouter } from "./routers/form.router.ts";
 export { publishedFormRouter } from "./routers/published-form.router.ts";
 export { hashPassword, signToken, verifyPassword, verifyToken } from "./auth.ts";
 export type { AuthUser } from "./auth.ts";
+export { Db } from "./db.ts";
 export type { Context } from "./context.ts";
 export type {
   AuthResult,
@@ -22,6 +23,7 @@ export {
   publishedFormDataSchema,
   publishedFormUpdateSchema,
   publishedFormIdSchema,
+  publishedFormSlugSchema,
   loginSchema,
   registerSchema,
   userSchema,

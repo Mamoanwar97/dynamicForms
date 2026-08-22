@@ -8,32 +8,40 @@ import {
   userSchema,
   type User,
 } from "../schemas.ts";
-import { USERS_COLLECTION } from "./util.ts";
+
+const UNIQUE_VIOLATION = "23505";
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: string }).code === UNIQUE_VIOLATION
+  );
+}
 
 export const authRouter = router({
   register: publicProcedure
     .input(registerSchema)
     .output(authResultSchema)
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db
-        .collection(USERS_COLLECTION)
-        .findOne({ username: input.username });
-      if (existing) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "Username is already taken",
-        });
-      }
       const passwordHash = await hashPassword(input.password);
-      const result = await ctx.db.collection(USERS_COLLECTION).insertOne({
-        username: input.username,
-        passwordHash,
-        createdAt: new Date(),
-      });
-      const user: User = {
-        id: result.insertedId.toHexString(),
-        username: input.username,
-      };
+      let id: string;
+      try {
+        const row = await ctx.db.queryOne<{ id: string }>(
+          `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id`,
+          [input.username, passwordHash],
+        );
+        id = row!.id;
+      } catch (err) {
+        if (isUniqueViolation(err)) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Username is already taken",
+          });
+        }
+        throw err;
+      }
+      const user: User = { id, username: input.username };
       return { user, token: await signToken(user, ctx.jwtSecret) };
     }),
 
@@ -41,23 +49,24 @@ export const authRouter = router({
     .input(loginSchema)
     .output(authResultSchema)
     .mutation(async ({ ctx, input }) => {
-      const doc = await ctx.db
-        .collection(USERS_COLLECTION)
-        .findOne({ username: input.username });
+      const row = await ctx.db.queryOne<{
+        id: string;
+        username: string;
+        password: string;
+      }>(
+        `SELECT id, username, password FROM users WHERE username = $1`,
+        [input.username],
+      );
       if (
-        !doc ||
-        typeof doc.passwordHash !== "string" ||
-        !(await verifyPassword(input.password, doc.passwordHash))
+        !row ||
+        !(await verifyPassword(input.password, row.password))
       ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid credentials",
         });
       }
-      const user: User = {
-        id: doc._id.toHexString(),
-        username: doc.username,
-      };
+      const user: User = { id: row.id, username: row.username };
       return { user, token: await signToken(user, ctx.jwtSecret) };
     }),
 

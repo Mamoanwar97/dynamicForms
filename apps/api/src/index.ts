@@ -6,6 +6,7 @@ import {
 } from "@trpc/server/adapters/fastify";
 import { appRouter, type AppRouter } from "@repo/server";
 import { closeDb, connectDb } from "./db.js";
+import { migrate } from "./migrate.js";
 import { createContext } from "./context.js";
 
 const app = Fastify({
@@ -40,8 +41,9 @@ await app.register(fastifyTRPCPlugin, {
 
 const start = async () => {
   try {
-    await connectDb();
-    app.log.info("Connected to MongoDB");
+    const db = await connectDb();
+    await migrate(db);
+    app.log.info("Connected to Postgres");
 
     const port = Number(process.env.PORT) || 3000;
     await app.listen({ port, host: "0.0.0.0" });

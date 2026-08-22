@@ -59,19 +59,19 @@ function FormsList() {
                 {form.inputs.length} input{form.inputs.length === 1 ? "" : "s"}
               </p>
             </div>
-            {form.publishedFormId && (
+            {form.publishedSlug && (
               <Badge variant="secondary">Published</Badge>
             )}
           </div>
           <div className="mt-auto flex items-center gap-1 border-t pt-3">
-            {form.publishedFormId && (
+            {form.publishedSlug && (
               <Button
                 asChild
                 variant="ghost"
                 size="icon"
                 aria-label={`View published ${form.title}`}
               >
-                <Link to="/forms/$id" params={{ id: form.publishedFormId }}>
+                <Link to="/forms/$slug" params={{ slug: form.publishedSlug }}>
                   <Globe />
                 </Link>
               </Button>

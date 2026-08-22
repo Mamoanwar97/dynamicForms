@@ -3,9 +3,9 @@ import { trpcClient } from "@/api/client";
 import { ViewForm } from "@/pages/view-form";
 import type { CreateFormData } from "@/schemas/create";
 
-export const Route = createFileRoute("/forms/$id")({
+export const Route = createFileRoute("/forms/$slug")({
   loader: ({ params }) =>
-    trpcClient.publishedForm.byId.query({ id: params.id }),
+    trpcClient.publishedForm.byId.query({ slug: params.slug }),
   pendingComponent: () => (
     <p className="text-sm text-muted-foreground">Loading published form…</p>
   ),

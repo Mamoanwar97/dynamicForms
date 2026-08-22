@@ -8,7 +8,7 @@ Monorepo for building, previewing, and persisting schema-driven forms.
 |------|------|
 | Monorepo | npm workspaces + Turborepo |
 | Web | React 19, Vite, TanStack Router/Query, tRPC client, RJSF + shadcn, Tailwind CSS 4 |
-| API | Fastify, tRPC, MongoDB |
+| API | Fastify, tRPC, Postgres |
 | Shared | `@repo/server` (tRPC router + Zod schemas), `@repo/form-tools` (RJSF schema builders) |
 
 ## Workspace layout
@@ -27,7 +27,7 @@ packages/
 ### Prerequisites
 
 - **Node.js** with **npm ≥ 11.6** (see root `package.json` `packageManager`)
-- **MongoDB** running locally (or a remote URI you can reach)
+- **PostgreSQL** running locally (or a remote URI you can reach)
 
 ### 1. Install dependencies
 
@@ -47,28 +47,36 @@ VITE_API_URL=http://localhost:3000
 
 `VITE_API_URL` is the API origin (no trailing slash). The client calls `${VITE_API_URL}/trpc`.
 
-**API** — optional. Defaults work for a local MongoDB with no auth. To override, export env vars when starting the API (or use your process manager):
+**API** — optional. Defaults work for a local Postgres at `127.0.0.1:5432` with a `postgres`/`postgres` role and a `dynamicForms` database. To override, export env vars when starting the API (or use your process manager):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3000` | HTTP listen port |
-| `MONGODB_URI` | `mongodb://127.0.0.1:27017` | Mongo connection string |
-| `MONGODB_DB` | `dynamicForms` | Database name |
+| `DATABASE_URL` | `postgres://postgres:postgres@127.0.0.1:5432/dynamicForms` | Postgres connection string |
 | `CORS_ORIGIN` | allow all | Comma-separated allowed origins (e.g. `http://localhost:5173`) |
 | `JWT_SECRET` | dev fallback | Secret used to sign auth tokens. **Set a strong value in production** |
 
 Example:
 
 ```bash
-export MONGODB_URI="mongodb://127.0.0.1:27017"
-export MONGODB_DB="dynamicForms"
+export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:5432/dynamicForms"
 export CORS_ORIGIN="http://localhost:5173"
 export PORT=3000
 ```
 
-### 3. Start MongoDB
+### 3. Create the database
 
-Ensure MongoDB is listening on the URI above (default `127.0.0.1:27017`). The API connects on boot and will exit if it cannot reach the database.
+Ensure Postgres is reachable at `DATABASE_URL`, and that the target database exists:
+
+```bash
+createdb dynamicForms
+```
+
+The API applies pending migrations automatically on boot (tracked in the `_migrations` table). You can also run them explicitly:
+
+```bash
+npm run migrate -w @repo/api
+```
 
 ### 4. Run the app
 
@@ -137,7 +145,7 @@ Ensure `VITE_API_URL` pointed at the real API **before** `npm run build` for the
 | `/create` | Split-pane builder with live preview; save creates a form (requires login) |
 | `/edit/$id` | Same builder prefilled from API; save updates the form (owner only) |
 | `/preview/$id` | Read-only rendered form for a saved definition (owner only) |
-| `/forms/$id` | Public page for an active published form (no login required) |
+| `/forms/$slug` | Public page for an active published form (no login required) |
 
 Form management (list/create/edit/delete/publish) requires being logged in and owning the form. The only public data is `publishedForm.byId` for active published forms.
 
@@ -168,10 +176,10 @@ Form management (list/create/edit/delete/publish) requires being logged in and o
 
 ### HTTP API (`apps/api`)
 
-- **Fastify** server with request logging, graceful shutdown (`SIGINT` / `SIGTERM`), and Mongo connect on boot.
+- **Fastify** server with request logging, graceful shutdown (`SIGINT` / `SIGTERM`), and Postgres connect + migration on boot.
 - **CORS** configurable via `CORS_ORIGIN`.
 - **Health**: `GET /` → `{ hello: "world" }`, `GET /health` → `{ ok: true }`.
-- **tRPC** mounted at `/trpc` with shared `appRouter` and request context that injects the Mongo `Db`.
+- **tRPC** mounted at `/trpc` with shared `appRouter` and request context that injects the Postgres query layer.
 
 ### tRPC API (`packages/server`)
 
@@ -189,14 +197,14 @@ Auth uses **Bearer JWTs**. Clients send `Authorization: Bearer <token>`; the API
 
 #### Forms (`form.*`) — private
 
-All `form.*` procedures require authentication and are scoped to the **owner** (`createdBy`), so a user only sees/manages their own forms.
+All `form.*` procedures require authentication and are scoped to the **owner** (`owner_id`), so a user only sees/manages their own forms.
 
 | Procedure | Type | Access |
 |-----------|------|--------|
 | `form.list` | query | Owner only |
 | `form.byId` | query | Owner only |
-| `form.create` | mutation | Owner (sets `createdBy`) |
-| `form.update` | mutation | Owner only |
+| `form.create` | mutation | Owner (sets `owner_id`; creates the initial draft version) |
+| `form.update` | mutation | Owner only (updates the current draft, or opens a new one after publishing) |
 | `form.delete` | mutation | Owner only |
 
 #### Published forms (`publishedForm.*`) — getById public
@@ -215,25 +223,30 @@ All `form.*` procedures require authentication and are scoped to the **owner** (
 
 Zod schemas (shared with the client via the package):
 
-- **User**: `username`, hashed `passwordHash` (bcrypt); serialized as `{ id, username }`
+- **User**: `username`, hashed `password` (bcrypt); serialized as `{ id, username }`
 - **Form input field**: `title` (required), `description?`, `isRequired?`
 - **Form payload**: `title` + `inputs` (min 1 field)
-- **Persisted form**: payload + `id`, `createdBy`, `createdAt`, `updatedAt` (ISO strings on the wire)
-- **Published form**: `formId`, `data?`, `isActive?`; persisted as `id`, `createdBy`, `createdAt`, `updatedAt`
+- **Persisted form**: payload + `id`, `publishedSlug?`, `createdAt`, `updatedAt` (ISO strings on the wire)
+- **Published form**: `slug`, `data?`, `isActive`; persisted as `{ id, slug, data, isActive, createdAt, updatedAt }`
 
-MongoDB collections: `users`, `forms`, `publishedForms`. Documents store `ObjectId` `_id` and `Date` timestamps; the router serializes to string `id` and ISO date strings.
+Postgres tables: `users`, `forms`, `form_versions`, `submissions` (schema in `apps/api/migrations`). Each form owns a chain of `form_versions`:
+
+- `form.create` inserts the form plus a `draft` version (v1) holding the schema.
+- `form.update` edits the current draft in place, or opens a new `draft` version if the previous one was already published.
+- `publishedForm.create` promotes the current draft to `published` (archiving the old published version), sets `is_active` and a stable random `public_slug`. Republishing keeps the same slug.
+- `publishedForm.byId` looks up an active form by `public_slug` and returns its published version's schema.
 
 ### Persistence (`apps/api`)
 
-- MongoDB driver connection pool helpers: `connectDb`, `getDb`, `closeDb`.
-- Context wires `db` into every tRPC procedure.
+- `pg` connection pool helpers: `connectDb`, `getDb`, `closeDb`; raw SQL migrations under `apps/api/migrations` (applied on boot, or via `npm run migrate -w @repo/api`).
+- A small `Db` wrapper (`@repo/server`) exposes `query` / `queryOne` / `withTransaction`; Context wires it into every tRPC procedure.
 
 ---
 
 ## Feature map (end-to-end)
 
 ```
-Create/Edit UI  →  form.create / form.update  →  MongoDB forms
+Create/Edit UI  →  form.create / form.update  →  Postgres forms + form_versions
 Home list       →  form.list / form.delete
 Preview         →  form.byId  →  ViewForm (RJSF from form-tools)
 ```

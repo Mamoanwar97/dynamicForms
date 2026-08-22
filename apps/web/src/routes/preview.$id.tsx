@@ -41,9 +41,9 @@ function PreviewRoute() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {form.publishedFormId && (
+          {form.publishedSlug && (
             <Button asChild variant="outline">
-              <Link to="/forms/$id" params={{ id: form.publishedFormId }}>
+              <Link to="/forms/$slug" params={{ slug: form.publishedSlug }}>
                 <Globe data-icon="inline-start" />
                 View published form
               </Link>
@@ -54,7 +54,6 @@ function PreviewRoute() {
             onClick={() =>
               publish.mutate({
                 formId: form.id,
-                data: { title: form.title, inputs: form.inputs },
                 isActive: true,
               })
             }
@@ -62,7 +61,7 @@ function PreviewRoute() {
             <Rocket data-icon="inline-start" />
             {publish.isPending
               ? "Publishing…"
-              : form.publishedFormId
+              : form.publishedSlug
                 ? "Republish"
                 : "Publish"}
           </Button>
@@ -74,8 +73,8 @@ function PreviewRoute() {
           Published successfully.{" "}
           <Link
             className="text-primary underline-offset-4 hover:underline"
-            to="/forms/$id"
-            params={{ id: publish.data.id }}
+            to="/forms/$slug"
+            params={{ slug: publish.data.slug }}
           >
             View published form
           </Link>

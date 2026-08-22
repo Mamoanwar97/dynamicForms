@@ -14,8 +14,7 @@ export const formDataSchema = z.object({
 export const formSchema = z.object({
   id: z.string(),
   ...formDataSchema.shape,
-  publishedFormId: z.string().optional(),
-  createdBy: z.string(),
+  publishedSlug: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -26,26 +25,28 @@ export const formIdSchema = z.object({
 
 export const publishedFormDataSchema = z.object({
   formId: z.string().min(1),
-  data: z.record(z.string(), z.unknown()).optional(),
   isActive: z.boolean().optional(),
 });
 
 export const publishedFormUpdateSchema = z.object({
-  data: formDataSchema.optional(),
   isActive: z.boolean().optional(),
 });
 
 export const publishedFormSchema = z.object({
   id: z.string(),
+  slug: z.string(),
   data: z.record(z.string(), z.unknown()).optional(),
   isActive: z.boolean().optional(),
-  createdBy: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
 export const publishedFormIdSchema = z.object({
   id: z.string().min(1),
+});
+
+export const publishedFormSlugSchema = z.object({
+  slug: z.string().min(1),
 });
 
 export const registerSchema = z.object({
